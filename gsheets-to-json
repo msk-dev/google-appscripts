@@ -1,0 +1,57 @@
+function getJSONData(){
+
+  const activeSpreadsheet=SpreadsheetApp.getActiveSpreadsheet();
+  const activeSheet=activeSpreadsheet.getActiveSheet();
+
+  const sheetName=activeSheet.getName();
+  Logger.log(sheetName)
+  const dataFilename=`${sheetName}-data-json.json`
+
+
+  let textTransport='[';
+    const maxRow=parseInt(activeSheet.getLastRow());
+    // removing the the header row
+    for(let i=2;i<=maxRow;i++){
+    const rID=activeSheet.getRange(i,1);
+    let vId=rID.getValues();
+
+    const rMod=activeSheet.getRange(i,2);
+    let vMod=rMod.getValues();
+
+    const rQ=activeSheet.getRange(i,3);
+    let vQ=rQ.getValues();
+
+    const rA=activeSheet.getRange(i,4);
+    let vA=rA.getValues();
+
+  let textCol4HasSplChar=vA[0][0];
+  textCol4HasSplChar=JSON.stringify(textCol4HasSplChar);
+
+  const textFormattedCol4=textCol4HasSplChar.replace(/\\n/g, "\\n")
+                                      .replace(/\\'/g, "\\'")
+                                      .replace(/\\"/g, '\\"')
+                                      .replace(/\\&/g, "\\&")
+                                      .replace(/\\r/g, "\\r")
+                                      .replace(/\\t/g, "\\t")
+                                      .replace(/\\b/g, "\\b")
+                                      .replace(/\\f/g, "\\f");
+    
+    textTransport=`${textTransport} {"id":${vId[0][0]},"module":"${vMod[0][0]}","q":"${vQ[0][0]}","a":${textFormattedCol4},"example":"${vId[0][0]}"},`;
+   
+    }
+    // remove the last comma, character
+    textTransport=textTransport.slice(0,-1)
+    textTransport=`${textTransport} ]`;
+
+
+  /*
+  const file = DriveApp.createFile(dataFilename, textTransport); // if you want to just keep the file at root
+  */
+const file = DriveApp.getFolderById("< FOLDER ID  copied from google drive > ").createFile(dataFilename, textTransport)
+  
+const fileId = file.getId();
+
+// retrieve the data from file
+const text = DriveApp.getFileById(fileId).getBlob().getDataAsString(); 
+console.log(text)
+}
